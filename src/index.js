@@ -4,6 +4,7 @@ import { createStore } from 'redux';
 import { CompositeDecorator, convertToRaw, Editor, EditorState, Entity, RichUtils } from 'draft-js';
 import { stateToHTML } from 'draft-js-export-html';
 import { stateFromHTML } from 'draft-js-import-html';
+import ReactPlayer from 'react-player'
 
 // UPDATE
 
@@ -51,6 +52,10 @@ class MyEditor extends React.Component {
         strategy: findImageEntities,
         component: Image,
       },
+      {
+        strategy: findMediaEntities,
+        component: Media,
+      }
     ]);
 
     let editorState;
@@ -65,7 +70,9 @@ class MyEditor extends React.Component {
       showURLInput: false,
       urlValue: '',
       imgSrc: '',
-      showImgInput: false
+      showImgInput: false,
+      mediaSrc: '',
+      showMediaInput: false
     };
 
     const updateStore = createDebouncer((editorState) => store.dispatch({
@@ -92,6 +99,12 @@ class MyEditor extends React.Component {
     this.confirmImg = this._confirmImg.bind(this);
     this.promptForImgSrc = this._promptForImgSrc.bind(this);
     this.onImgInputKeyDown = this._onImgInputKeyDown.bind(this);
+
+    this.onMediaChange = (e) => this.setState({ mediaSrc: e.target.value });
+    this.confirmMedia = this._confirmMedia.bind(this);
+    this.promptForMediaSrc = this._promptForMediaSrc.bind(this);
+    this.onMediaInputKeyDown = this._onMediaInputKeyDown.bind(this);
+
 
     this.handleKeyCommand = this.handleKeyCommand.bind(this);
     this.removeLink = this._removeLink.bind(this);
@@ -213,6 +226,39 @@ class MyEditor extends React.Component {
     }
   }
 
+  _promptForMediaSrc(e) {
+    e.preventDefault();
+    const {editorState} = this.state;
+    const selection = editorState.getSelection();
+    if (!selection.isCollapsed()) {
+      this.setState({
+        showMediaInput: true,
+        mediaSrc: '',
+      });
+    }
+  }
+
+  _onMediaInputKeyDown(e) {
+    if (e.which === 13) {
+      this._confirmImg(e);
+    }
+  }
+
+  _confirmMedia(e) {
+    e.preventDefault();
+    const {editorState, mediaSrc} = this.state;
+    const entityKey = Entity.create('MEDIA', 'IMMUTABLE', {url: mediaSrc});
+    this.setState({
+      editorState: RichUtils.toggleLink(
+        editorState,
+        editorState.getSelection(),
+        entityKey
+      ),
+      showMediaInput: false,
+      mediaSrc: '',
+    });
+  }
+
   render() {
     const {editorState} = this.state
     let urlInput;
@@ -249,6 +295,23 @@ class MyEditor extends React.Component {
         </div>;
     }
 
+    let mediaInput;
+    if (this.state.showMediaInput) {
+      mediaInput =
+        <div>
+          <input
+            onChange={this.onMediaChange}
+            onKeyPress={this.onMediaInputKeyDown}
+            ref="url"
+            type="text"
+            value={this.state.mediaSrc}
+          />
+          <button onClick={this.confirmMedia}>
+            Confirm
+          </button>
+        </div>;
+    }
+
     let className = 'RichEditor-editor';
     var contentState = editorState.getCurrentContent();
     if (!contentState.hasText()) {
@@ -259,11 +322,7 @@ class MyEditor extends React.Component {
 
     return (
       <div>
-        <button
-          onClick={this.logState}
-          type="button"
-          value="Log State"
-        />
+        <button onClick={this.logState}>log state</button>
         <InlineStyleControls
           editorState={editorState}
           onToggle={this.toggleInlineStyle}
@@ -276,8 +335,11 @@ class MyEditor extends React.Component {
         <button onClick={this.removeLink}>Remove Link</button>
         <br/>
         <button onClick={this.promptForImgSrc}>Add Img</button>
+        <br/>
+        <button onClick={this.promptForMediaSrc}>Add Vid</button>
         { urlInput }
         { imgInput }
+        { mediaInput }
         <Editor
           blockStyleFn={getBlockStyle}
           customStyleMap={styleMap}
@@ -419,6 +481,19 @@ function findImageEntities(contentBlock, callback) {
   );
 }
 
+function findMediaEntities(contentBlock, callback) {
+  contentBlock.findEntityRanges(
+    (character) => {
+      const entityKey = character.getEntity();
+      return (
+        entityKey !== null &&
+        Entity.get(entityKey).getType() === 'MEDIA'
+      );
+    },
+    callback
+  );
+}
+
 const linkStyle = {
           color: '#3b5998',
           textDecoration: 'underline',
@@ -437,6 +512,13 @@ const Image = (props) => {
   const {src} = Entity.get(props.entityKey).getData();
   return (
     <img src={src} />
+  );
+};
+
+const Media = (props) => {
+  const {url} = Entity.get(props.entityKey).getData();
+  return (
+    <ReactPlayer url={url} playing/>
   );
 };
 

@@ -11,6 +11,7 @@
     "draft-js-import-html": "^0.3.2",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
+    "react-player": "^0.14.1",
     "react-redux": "^5.0.2",
     "redux": "^3.6.0"
   },
