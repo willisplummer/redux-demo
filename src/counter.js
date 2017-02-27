@@ -2,7 +2,7 @@ import React from 'react';
 
 // MODEL
 
-export const counterInitialState = {
+export const initialState = {
   count: 0
 } 
 

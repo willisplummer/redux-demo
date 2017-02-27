@@ -2,7 +2,7 @@ import React from 'react';
 import {
   reducer as counterReducer,
   Counter,
-  counterInitialState
+  initialState as counterInitialState
 } from './counter';
 
 export const initialState = {
