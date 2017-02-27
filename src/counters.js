@@ -6,8 +6,8 @@ import {
 } from './counter';
 
 export const initialState = {
-  counter1: counterInitialState,
-  counter2: counterInitialState
+  counter1: counterInitialState(),
+  counter2: counterInitialState()
 };
 
 export const updateCounter1 = (subAction) => (

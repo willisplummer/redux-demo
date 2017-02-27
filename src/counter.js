@@ -2,9 +2,9 @@ import React from 'react';
 
 // MODEL
 
-export const initialState = {
+export const initialState = () => ({
   count: 0
-} 
+}); 
 
 // UPDATE
 
