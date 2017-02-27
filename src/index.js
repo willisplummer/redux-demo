@@ -13,21 +13,9 @@ import {
   reducer,
   Counters
 } from './counters';
+import { liftActions } from './utils';
 
 // LIFT ACTIONS
-
-const mapObject = (fn, obj) =>
-  Object.keys(obj)
-    .reduce((newObj, key) => (
-      { ...newObj, [key]: fn(obj[key]) }
-      ), {});
-
-const compose = (...functions) =>
-  functions.reduce((f, g) => (...xs) => f(g(...xs)));
-
-const liftActions = (store, higherOrderActionCreator, xs) =>
-  mapObject(x => compose(store.dispatch, higherOrderActionCreator, x), xs);
-
 
 const store = createStore(reducer, initialState);
 const counter1Actions = liftActions(store, updateCounter1, counterActions);
